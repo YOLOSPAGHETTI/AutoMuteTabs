@@ -1,5 +1,6 @@
 'use strict'
 let stateAllTabs = false;
+let autoMute = false;
 
 chrome.commands.onCommand.addListener(command => {
 	switch (command) {
@@ -23,21 +24,57 @@ chrome.commands.onCommand.addListener(command => {
 			break;
 
 		case "mute_tab_all_except_current":
+			let activeTabId = 0;
+			chrome.tabs.query({
+				active: true,
+				currentWindow: true
+			}, function(tabs) {
+				activeTabId = tabs[0].id;
+			});
 			chrome.windows.getAll({populate: true}, windowList => {
 				windowList.forEach(window => {
 					window.tabs.forEach(tab => {
 						if (tab.audible) {
-							chrome.tabs.update(tab.id, {muted: true})
+							if(tab.id == activeTabId) {
+								muteTab(activeTabId, false);
+							}
+							else {
+								muteTab(tab.id, true);
+							}
 						}
 					});
 				});
 			});
-			chrome.tabs.getSelected(null, tab => {
-				chrome.tabs.update(tab.id, {muted: false});
-			});
+			break;
+			
+		case "auto_mute_tab_all_except_current":
+			autoMute = !autoMute;
 			break;
 
 		default:
 			break;
 	}
 });
+
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+	if(autoMute) {
+		chrome.windows.getAll({populate: true}, windowList => {
+			windowList.forEach(window => {
+				window.tabs.forEach(tab => {
+					if (tab.audible) {
+						if(tab.id == activeInfo.tabId) {
+							muteTab(activeInfo.tabId, false);
+						}
+						else {
+							muteTab(tab.id, true);
+						}
+					}
+				});
+			});
+		});
+	}
+});
+
+async function muteTab(tabId, muted) {
+  await chrome.tabs.update(tabId, {muted});
+}

@@ -1,17 +1,20 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
 
-    "name": "Mute Tab Shortcuts",
-    "version": "1.2.0",
+    "name": "Auto Mute Tab Shortcuts",
+    "version": "1.0.0",
     "description": "Quickly mute tabs with keyboard shortcuts",
+	"permissions":[
+		"background",
+		"tabs"
+	],
     "icons": {
         "16": "imgs/16.png",
         "48": "imgs/48.png",
         "128": "imgs/128.png"
     },
     "background": {
-        "persisten": false,
-        "scripts": ["background.js"]
+        "service_worker": "background.js"
     },
     "commands": {
         "mute_tab_current": {
@@ -30,6 +33,12 @@
             "description": "Mute all audible tabs except current",
             "suggested_key": {
                 "default": "Alt+Shift+N"
+            }
+        },
+		"auto_mute_tab_all_except_current": {
+            "description": "Automatically mute all audible tabs except current",
+            "suggested_key": {
+                "default": "Alt+Shift+A"
             }
         }
     }
