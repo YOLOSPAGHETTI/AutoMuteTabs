@@ -41,6 +41,12 @@
                 "default": "Alt+Shift+A"
             }
         }
-    }
+    },
+	"action": {
+		"default_icon": {
+		  "16": "imgs/16.png"
+		},
+		"default_title": "Automatically mute all audible tabs except current"
+	}
 }
 

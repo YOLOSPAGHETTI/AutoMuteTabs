@@ -48,7 +48,7 @@ chrome.commands.onCommand.addListener(command => {
 			break;
 			
 		case "auto_mute_tab_all_except_current":
-			autoMute = !autoMute;
+			toggleAutomute();
 			break;
 
 		default:
@@ -56,14 +56,44 @@ chrome.commands.onCommand.addListener(command => {
 	}
 });
 
-chrome.tabs.onActivated.addListener(function(activeInfo) {
+chrome.action.onClicked.addListener((tab) => {
+	toggleAutomute();
+});
+
+chrome.windows.onFocusChanged.addListener(function(windowId) {
+	//console.log("switchWindows");
 	if(autoMute) {
 		chrome.windows.getAll({populate: true}, windowList => {
 			windowList.forEach(window => {
 				window.tabs.forEach(tab => {
 					if (tab.audible) {
+						muteTab(tab.id, true);
+					}
+				});
+			});
+		});
+		//console.log("windowId: " + windowId);
+		if( windowId !== chrome.windows.WINDOW_ID_NONE ) {
+			chrome.tabs.query({active: true, windowId: windowId}, function( tabs ) {
+				let currentSelected = tabs[0].id;
+				//console.log("tabid: " + currentSelected);
+				muteTab(currentSelected, false);
+			});
+		}
+	}
+});
+
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+	//console.log("switchTabs");
+	if(autoMute) {
+		chrome.windows.getAll({populate: true}, windowList => {
+			windowList.forEach(window => {
+				window.tabs.forEach(tab => {
+					if (tab.audible) {
+						//console.log("tab.id: " + tab.id);
+						//console.log("activeInfo.tabId: " + activeInfo.tabId);
 						if(tab.id == activeInfo.tabId) {
-							muteTab(activeInfo.tabId, false);
+							muteTab(tab.id, false);
 						}
 						else {
 							muteTab(tab.id, true);
@@ -77,4 +107,15 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
 
 async function muteTab(tabId, muted) {
   await chrome.tabs.update(tabId, {muted});
+}
+
+function toggleAutomute() {
+	autoMute = !autoMute;
+	if(autoMute) {
+		chrome.action.setIcon({ path: "imgs/16 bright.png" });
+	}
+	else {
+		chrome.action.setIcon({ path: "imgs/16.png" });
+	}
+	//console.log("autoMute: " + autoMute);
 }
